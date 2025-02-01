@@ -1,13 +1,9 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Gamepad2, Sparkles, Brain, Wand2, Rocket, Globe2, Users, Star, ChevronRight, Zap } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 function LandingPage() {
-
-  
-
-  
-
-
+    const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
       <div className="noise" />
@@ -62,6 +58,9 @@ function LandingPage() {
                   </motion.p>
 
                   <motion.button
+                 onClick={() => {
+                    navigate('/prompt');
+                  }}
                     className="brutalist-button"
                     whileTap={{ scale: 0.95 }}
                   >
