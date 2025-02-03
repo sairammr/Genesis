@@ -19,7 +19,7 @@ export const sceneModels: ModelPosition[] = [
   },
   {
     modelPath: '/cannon.gltf',
-    position: new THREE.Vector3(0, 0, 0),
+    position: new THREE.Vector3(20, 0, 0),
     rotation: new THREE.Euler(0, Math.PI / 4, 0),
     scale: new THREE.Vector3(1, 1, 1)
   },
