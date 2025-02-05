@@ -3,7 +3,7 @@ import './App.css'
 import LandingPage from "./pages/landing";
 import { PromptInput } from "./pages/promptInput";
 import { LoadingScreen } from "./pages/loading";
-import SceneViewer from "./pages/gameinit";
+import SceneViewer from "./game/gameinit";
 function App() {
   
 
