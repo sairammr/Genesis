@@ -1,10 +1,32 @@
 import * as THREE from 'three';
 import { FirstPersonController } from './firstpersonview';
-
+import { processCubeMap } from '../utils/cubeMapGenerator';
 export const initializeScene = (container: HTMLElement, planeSize: number) => {
-  // Scene setup
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x87ceeb);
+   
+  // Process and append cube map faces
+  let textureImages: string[] = [];
+  processCubeMap('/sb3.jpg', {
+    interpolation: 'linear',
+    resolution: 1024
+  }).then(faces => {
+    textureImages = faces.map(face => {
+      // Convert canvas to data URL
+      return face.canvas.toDataURL('image/png');
+    });
+    
+    // Update the texture with processed faces
+    const loader = new THREE.CubeTextureLoader();
+    const texture = loader.load(textureImages);
+    scene.background = texture;
+    
+    // Apply the same transformations
+    texture.matrixAutoUpdate = false;
+    texture.matrix.identity()
+      .scale(0.95, 0.95 * 0.95)
+      .translate(0, 0.12);
+  });
+  
 
   // Camera setup
   const camera = new THREE.PerspectiveCamera(
@@ -20,26 +42,23 @@ export const initializeScene = (container: HTMLElement, planeSize: number) => {
   renderer.shadowMap.enabled = true;
   container.appendChild(renderer.domElement);
 
-  // Initialize first person controller
   const controller = new FirstPersonController(camera, renderer.domElement);
+  controller.getObject().position.y = 1.6; 
   scene.add(controller.getObject());
 
   // Ground plane
-  const planeGeometry = new THREE.PlaneGeometry(planeSize, planeSize);
-  const planeMaterial = new THREE.MeshStandardMaterial({ 
-    color: 0x55aa55,
-    side: THREE.DoubleSide
-  });
-  const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+  const plane = new THREE.Mesh(
+    new THREE.PlaneGeometry(planeSize, planeSize),
+    new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      side: THREE.DoubleSide
+    })
+  );
   plane.rotation.x = -Math.PI / 2;
-  plane.position.y = 0;
   plane.receiveShadow = true;
   scene.add(plane);
-
-  // Grid helper
   const gridHelper = new THREE.GridHelper(planeSize, planeSize);
   scene.add(gridHelper);
-
   // Lighting
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
   scene.add(ambientLight);
@@ -53,5 +72,4 @@ export const initializeScene = (container: HTMLElement, planeSize: number) => {
 
   return { scene, camera, renderer, controller };
 };
-
 export type GameInitializationResult = ReturnType<typeof initializeScene>;

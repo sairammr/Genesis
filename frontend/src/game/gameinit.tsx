@@ -11,7 +11,7 @@ const SceneViewer = () => {
     if (!mountRef.current) return;
     
     const currentRef = mountRef.current;
-    const { scene, camera, renderer, controller } = initializeScene(currentRef, 100);
+    const { scene, camera, renderer, controller } = initializeScene(currentRef, 100,);
     
     // Load models
     
