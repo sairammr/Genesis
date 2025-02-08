@@ -1,12 +1,13 @@
 import * as THREE from 'three';
 import { FirstPersonController } from './firstpersonview';
 import { processCubeMap } from '../utils/cubeMapGenerator';
+
 export const initializeScene = (container: HTMLElement, planeSize: number) => {
   const scene = new THREE.Scene();
    
   // Process and append cube map faces
   let textureImages: string[] = [];
-  processCubeMap('/sb7.jpg', {
+  processCubeMap('/sb4.jpg', {
     interpolation: 'linear',
     resolution: 1024
   }).then(faces => {
@@ -37,38 +38,49 @@ export const initializeScene = (container: HTMLElement, planeSize: number) => {
   );
 
   // Renderer setup
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  const renderer = new THREE.WebGLRenderer({ antialias: false });
   renderer.setSize(container.clientWidth, container.clientHeight);
-  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.enabled = false;
   container.appendChild(renderer.domElement);
 
   const controller = new FirstPersonController(camera, renderer.domElement);
   controller.getObject().position.y = 1.6; 
   scene.add(controller.getObject());
-
+  //fr
+  scene.traverse((child) => {
+    if (child instanceof THREE.Mesh) {
+      child.frustumCulled = true;
+    }
+  });
   // Ground plane
-  const plane = new THREE.Mesh(
-    new THREE.PlaneGeometry(500, 500),
-    new THREE.MeshStandardMaterial({
-      color: 0x90EE90,
-      side: THREE.DoubleSide
-    })
-  );
-  plane.rotation.x = -Math.PI / 2;
-  plane.receiveShadow = true;
-  scene.add(plane);
-  const gridHelper = new THREE.GridHelper(planeSize, planeSize);
-  scene.add(gridHelper);
+  //const plane = new THREE.Mesh(
+   // new THREE.PlaneGeometry(100, 100),
+   // new THREE.MeshStandardMaterial({
+   //   color: 0x90EE90,
+  //    side: THREE.DoubleSide
+  //  })
+ ////// );
+  //scene.add(plane);
+  //const gridHelper = new THREE.GridHelper(100, 100);
+  //scene.add(gridHelper);
   // Lighting
-  const ambientLight = new THREE.AmbientLight(0x000000, 0.5);
-  scene.add(ambientLight);
+ // Ambient light for base illumination (low cost)
+const ambientLight = new THREE.AmbientLight(0xffffff, 1.5); // Moderate intensity
+scene.add(ambientLight);
 
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-  directionalLight.position.set(50, 50, 50);
-  directionalLight.castShadow = true;
-  directionalLight.shadow.mapSize.width = 2048;
-  directionalLight.shadow.mapSize.height = 2048;
-  scene.add(directionalLight);
+// Single directional light for shadows (optimized settings)
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1); // Reduced intensity
+directionalLight.position.set(50, 100, 50);
+
+// Reduce shadow map resolution for better performance
+ // Reduced from 2048
+
+// Tighten shadow camera frustum to cover only necessary areas
+
+scene.add(directionalLight);
+// Optional: Add a point light for additional brightness
+
+
 
   return { scene, camera, renderer, controller };
 };

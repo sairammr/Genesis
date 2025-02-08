@@ -5,18 +5,19 @@ import { useNavigate } from 'react-router-dom';
 export function PromptInput() {
   const [prompt, setPrompt] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (prompt.length < 100) {
       setError('ERROR: MINIMUM 100 CHARACTERS REQUIRED');
       return;
     }
-    else {
-      navigate('/loading');
-    }
+
     setError('');
-    
+    setLoading(true);
+    navigate('/loading', { state: { prompt } });
+    setLoading(false);
   };
 
   return (

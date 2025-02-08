@@ -8,15 +8,18 @@ interface Message {
   timestamp: Date;
   id: string;
 }
+interface GameChatProps {
+  isOpen: boolean;
+  onClose: () => void;
+  characterName: string;
+}
 
-export function GameChat() {
-  const [isOpen, setIsOpen] = useState(false);
+export function GameChat({ isOpen, onClose, characterName }: GameChatProps) {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
-  const [isTyping, setIsTyping] = useState(false);
+  const [ws, setWs] = useState<WebSocket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const characterName = "NEXUS-7 // NEURAL GUIDE";
-
+  const [isTyping, setIsTyping] = useState(false);
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -24,32 +27,59 @@ export function GameChat() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+  useEffect(() => {
+    const websocket = new WebSocket('ws://localhost:5000');
+    
+    websocket.onopen = () => {
+      console.log('Connected to WebSocket');
+      setWs(websocket);
+    };
+
+    websocket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      switch (data.type) {
+        case 'status':
+          setIsTyping(data.step < 3);
+          break;
+        case 'story':
+          addAIMessage(data.data);
+          break;
+        case 'error':
+          addAIMessage(`ERROR: ${data.data}`);
+          break;
+      }
+    };
+
+    return () => websocket.close();
+  }, []);
+  const addAIMessage = (text: string) => {
+    setMessages(prev => [...prev, {
+      text,
+      isPlayer: false,
+      timestamp: new Date(),
+      id: Math.random().toString(36).substring(7)
+    }]);
+    setIsTyping(false);
+  };
 
   const handleSend = () => {
-    if (message.trim()) {
-      const newMessage = {
+    if (message.trim() && ws) {
+      // Format message for WebSocket
+      const formattedMessage = `chat to ${characterName} ${message}`;
+      ws.send(formattedMessage);
+
+      // Add user message
+      setMessages(prev => [...prev, {
         text: message,
         isPlayer: true,
         timestamp: new Date(),
         id: Math.random().toString(36).substring(7)
-      };
-      
-      setMessages(prev => [...prev, newMessage]);
+      }]);
       setMessage('');
       setIsTyping(true);
-      
-      // Simulate AI response
-      setTimeout(() => {
-        setIsTyping(false);
-        setMessages(prev => [...prev, {
-          text: "ANALYZING REQUEST... [DATA_STREAM_0x7F] Processing neural patterns...",
-          isPlayer: false,
-          timestamp: new Date(),
-          id: Math.random().toString(36).substring(7)
-        }]);
-      }, 2000);
     }
   };
+
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -80,7 +110,6 @@ export function GameChat() {
                   </h3>
                 </div>
                 <button
-                  onClick={() => setIsOpen(false)}
                   className="hover:text-red-500 transition-colors"
                 >
                   <X size={20} />
@@ -178,7 +207,6 @@ export function GameChat() {
 
       {/* Toggle Button */}
       <motion.button
-        onClick={() => setIsOpen(!isOpen)}
         className="relative group"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}

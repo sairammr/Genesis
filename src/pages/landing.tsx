@@ -2,7 +2,11 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Gamepad2, Sparkles, Brain, Wand2, Rocket, Globe2, Users, Star, ChevronRight, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { usePrivy } from "@privy-io/react-auth";
+
 function LandingPage() {
+  const { ready, authenticated, user, login, logout } = usePrivy();
+
     const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
@@ -25,6 +29,13 @@ function LandingPage() {
                     {item}
                   </a>
                 ))}
+                {ready && authenticated ? (
+                    <button onClick={logout} className="text-white hover:line-through transition-all font-bold">
+                      LOG OUT
+                    </button>
+                ) : (
+                  <button onClick={login}   className="text-white hover:line-through transition-all font-bold">LOG IN</button>
+                )}
               </div>
             </div>
           </nav>
@@ -46,6 +57,7 @@ function LandingPage() {
                     <span className="block text-white">CREATE</span>
                     <span className="block text-white">YOUR</span>
                     <span className="block text-white">UNIVERSE</span>
+                    
                   </motion.h1>
                   
                   <motion.p 
@@ -148,6 +160,7 @@ function LandingPage() {
                   EXECUTE
                   <ChevronRight className="inline-block ml-2" />
                 </button>
+                
               </motion.div>
             </section>
           </main>

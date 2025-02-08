@@ -1,90 +1,48 @@
+// server.js
+const WebSocket = require('ws');
 const express = require('express');
-const { v4: uuidv4 } = require('uuid');
+const app = express();
+const server = app.listen(8080);
+const wss = new WebSocket.Server({ server });
 
-const router = express.Router();
+wss.on('connection', (ws) => {
+  ws.on('message', async (message) => {
+    try {
+      const prompt = message.toString();
+      
+      // Simulate AI Model processing
+      ws.send(JSON.stringify({ type: 'status', step: 0 }));
+      
+      const aiResponse = await new Promise(resolve => setTimeout(() => {
+        resolve({
+          story: 'A dark crime unfolds in the city...',
+          imagePrompt: 'noir-style dark alley with streetlight',
+          position: { x: 35, y: 72 }
+        });
+      }, 2000));
 
-/**
- * Generate 3D Scene Endpoint
- * Receives a scene description and returns 3D model placement details
- */
-router.post('/generate-scene', async (req, res) => {
-  try {
-    // Validate input
-    const { sceneDescription } = req.body;
-    if (!sceneDescription) {
-      return res.status(400).json({ error: 'Scene description is required' });
+      ws.send(JSON.stringify({ type: 'status', step: 1 }));
+      ws.send(JSON.stringify({ type: 'story', data: aiResponse.story }));
+
+      ws.send(JSON.stringify({ type: 'status', step: 2 }));
+      
+      // Parallel processing
+      const [imageResult, positionResult] = await Promise.all([
+        new Promise(resolve => setTimeout(() => 
+          resolve({ imageUrl: 'https://example.com/generated-image.jpg' }), 3000)),
+        new Promise(resolve => setTimeout(() => 
+          resolve({ coordinates: aiResponse.position }), 2500))
+      ]);
+
+      ws.send(JSON.stringify({ type: 'image', data: imageResult }));
+      ws.send(JSON.stringify({ type: 'position', data: positionResult }));
+      
+      ws.send(JSON.stringify({ type: 'status', step: 3 }));
+      setTimeout(() => ws.close(), 1000);
+    } catch (error) {
+      console.error('Error:', error);
+      ws.send(JSON.stringify({ type: 'error', data: 'Processing failed' }));
+      ws.close();
     }
-
-    // Call AI Model (Simulated with a mock generation function)
-    const sceneDetails = await generateSceneDetails(sceneDescription);
-
-    // Respond with generated scene details
-    res.status(200).json(sceneDetails);
-  } catch (error) {
-    console.error('Scene generation error:', error);
-    res.status(500).json({ 
-      error: 'Failed to generate scene', 
-      details: error.message 
-    });
-  }
-});
-
-/**
- * Mock AI Model Scene Generation Function
- * In a real-world scenario, this would call an actual AI service
- * @param {string} sceneDescription 
- * @returns {Promise<Object>} Scene details with 3D models
- */
-async function generateSceneDetails(sceneDescription) {
-  // Simulated async AI model processing
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        requestId: uuidv4(),
-        sceneDescription: sceneDescription,
-        models: [
-          {
-            id: uuidv4(),
-            modelUrl: 'https://cdn.example.com/models/tree.glb',
-            position: {
-              x: Math.floor(Math.random() * 100),
-              y: 0,
-              z: Math.floor(Math.random() * 100)
-            },
-            rotation: {
-              x: 0,
-              y: Math.random() * Math.PI * 2,
-              z: 0
-            },
-            scale: {
-              x: 1 + Math.random(),
-              y: 1 + Math.random(),
-              z: 1 + Math.random()
-            }
-          },
-          {
-            id: uuidv4(),
-            modelUrl: 'https://cdn.example.com/models/rock.glb',
-            position: {
-              x: Math.floor(Math.random() * 100),
-              y: 0,
-              z: Math.floor(Math.random() * 100)
-            },
-            rotation: {
-              x: 0,
-              y: Math.random() * Math.PI * 2,
-              z: 0
-            },
-            scale: {
-              x: 1 + Math.random(),
-              y: 1 + Math.random(),
-              z: 1 + Math.random()
-            }
-          }
-        ]
-      });
-    }, 1000); // Simulate processing time
   });
-}
-
-module.exports = router;
+});

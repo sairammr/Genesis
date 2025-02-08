@@ -10,10 +10,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@privy-io/react-auth": "^2.4.2",
     "@react-three/drei": "^9.121.4",
     "@react-three/fiber": "^8.17.14",
     "@tailwindcss/cli": "^4.0.3",
     "@tailwindcss/vite": "^4.0.3",
+    "@types/cannon": "^0.1.13",
+    "cannon": "^0.6.2",
+    "cannon-es": "^0.20.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.0.6",
@@ -25,7 +29,8 @@
     "simplex-noise": "^4.0.3",
     "tailwind-merge": "^3.0.1",
     "tailwindcss-animate": "^1.0.7",
-    "three": "^0.173.0",
+    "three": "0.146.0",
+    "three-stdlib": "^2.35.13",
     "typewriter-effect": "^2.21.0"
   },
   "devDependencies": {

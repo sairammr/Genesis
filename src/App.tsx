@@ -16,7 +16,6 @@ function App() {
       <Route path="/loading" element={<LoadingScreen/>} />
       <Route path="/story" element={<StoryIntro />} />
       <Route path='/game' element={<SceneViewer/>} />
-      <Route path="*" element={<Navigate to="/story" replace />} />
     </Routes>
     
     </Router>
