@@ -96,7 +96,7 @@ export function LoadingScreen() {
   useEffect(() => {
     if (results.image && results.position && results.story) {
       setTimeout(() => {
-        navigate('/game', { state: results });
+        navigate('/story', { state: results });
       }, 2000);
     }
   }, [results, navigate]);

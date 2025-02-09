@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { FirstPersonController } from './firstpersonview';
 import { processCubeMap } from '../utils/cubeMapGenerator';
-
+import { generateRoads } from './generateRoads';
 export const initializeScene = (container: HTMLElement, planeSize: number) => {
   const scene = new THREE.Scene();
    
@@ -44,8 +44,7 @@ export const initializeScene = (container: HTMLElement, planeSize: number) => {
   container.appendChild(renderer.domElement);
 
   const controller = new FirstPersonController(camera, renderer.domElement);
-  controller.getObject().position.y = 1.6; 
-  scene.add(controller.getObject());
+      scene.add(controller.getObject());
   //fr
   scene.traverse((child) => {
     if (child instanceof THREE.Mesh) {
@@ -53,16 +52,18 @@ export const initializeScene = (container: HTMLElement, planeSize: number) => {
     }
   });
   // Ground plane
-  //const plane = new THREE.Mesh(
-   // new THREE.PlaneGeometry(100, 100),
-   // new THREE.MeshStandardMaterial({
-   //   color: 0x90EE90,
-  //    side: THREE.DoubleSide
-  //  })
- ////// );
-  //scene.add(plane);
-  //const gridHelper = new THREE.GridHelper(100, 100);
-  //scene.add(gridHelper);
+  const plane = new THREE.Mesh(
+    new THREE.PlaneGeometry(1, 1), // Minimal geometry
+    new THREE.MeshBasicMaterial({ color: 0x90EE90 }) // Lightweight material
+  );
+  
+  plane.scale.set(100, 100, 1); // Scale it up instead of using high-vertex geometry
+  plane.rotation.x = -Math.PI / 2; // Make it horizontal
+  plane.receiveShadow = false; // Reduce processing if shadows aren't needed
+  
+  scene.add(plane);
+const gridHelper = new THREE.GridHelper(100, 100);
+  scene.add(gridHelper);
   // Lighting
  // Ambient light for base illumination (low cost)
 const ambientLight = new THREE.AmbientLight(0xffffff, 1.5); // Moderate intensity
@@ -76,7 +77,7 @@ directionalLight.position.set(50, 100, 50);
  // Reduced from 2048
 
 // Tighten shadow camera frustum to cover only necessary areas
-
+generateRoads(scene, planeSize);
 scene.add(directionalLight);
 // Optional: Add a point light for additional brightness
 

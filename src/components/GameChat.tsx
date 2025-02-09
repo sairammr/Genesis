@@ -8,6 +8,7 @@ interface Message {
   timestamp: Date;
   id: string;
 }
+
 interface GameChatProps {
   isOpen: boolean;
   onClose: () => void;
@@ -17,19 +18,19 @@ interface GameChatProps {
 export function GameChat({ isOpen, onClose, characterName }: GameChatProps) {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
+  const [isTyping, setIsTyping] = useState(false);
   const [ws, setWs] = useState<WebSocket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [isTyping, setIsTyping] = useState(false);
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
 
+  // Scroll to bottom when messages update
   useEffect(() => {
-    scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Initialize WebSocket connection
   useEffect(() => {
     const websocket = new WebSocket('ws://localhost:5000');
-    
+
     websocket.onopen = () => {
       console.log('Connected to WebSocket');
       setWs(websocket);
@@ -47,18 +48,24 @@ export function GameChat({ isOpen, onClose, characterName }: GameChatProps) {
         case 'error':
           addAIMessage(`ERROR: ${data.data}`);
           break;
+        default:
+          console.warn('Unknown message type:', data.type);
       }
     };
 
-    return () => websocket.close();
+   
   }, []);
+
   const addAIMessage = (text: string) => {
-    setMessages(prev => [...prev, {
-      text,
-      isPlayer: false,
-      timestamp: new Date(),
-      id: Math.random().toString(36).substring(7)
-    }]);
+    setMessages((prev) => [
+      ...prev,
+      {
+        text,
+        isPlayer: false,
+        timestamp: new Date(),
+        id: Math.random().toString(36).substring(7),
+      },
+    ]);
     setIsTyping(false);
   };
 
@@ -68,18 +75,20 @@ export function GameChat({ isOpen, onClose, characterName }: GameChatProps) {
       const formattedMessage = `chat to ${characterName} ${message}`;
       ws.send(formattedMessage);
 
-      // Add user message
-      setMessages(prev => [...prev, {
-        text: message,
-        isPlayer: true,
-        timestamp: new Date(),
-        id: Math.random().toString(36).substring(7)
-      }]);
+      // Add user message to local state
+      setMessages((prev) => [
+        ...prev,
+        {
+          text: message,
+          isPlayer: true,
+          timestamp: new Date(),
+          id: Math.random().toString(36).substring(7),
+        },
+      ]);
       setMessage('');
       setIsTyping(true);
     }
   };
-
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -105,13 +114,9 @@ export function GameChat({ isOpen, onClose, characterName }: GameChatProps) {
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
                   <Cpu className="animate-pulse" />
-                  <h3 className="font-mono font-bold tracking-tight">
-                    {characterName}
-                  </h3>
+                  <h3 className="font-mono font-bold tracking-tight">{characterName}</h3>
                 </div>
-                <button
-                  className="hover:text-red-500 transition-colors"
-                >
+                <button onClick={onClose} className="hover:text-red-500 transition-colors">
                   <X size={20} />
                 </button>
               </div>
@@ -122,11 +127,11 @@ export function GameChat({ isOpen, onClose, characterName }: GameChatProps) {
             </div>
 
             {/* Messages */}
-            <div 
+            <div
               className="h-[calc(100%-12rem)] overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-white scrollbar-track-black"
-              style={{ 
+              style={{
                 backgroundImage: 'linear-gradient(0deg, rgba(255,255,255,0.03) 1px, transparent 1px)',
-                backgroundSize: '100% 8px'
+                backgroundSize: '100% 8px',
               }}
             >
               {messages.map((msg) => (
@@ -137,24 +142,23 @@ export function GameChat({ isOpen, onClose, characterName }: GameChatProps) {
                   className={`flex ${msg.isPlayer ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`
-                      relative max-w-[80%] p-4
-                      ${msg.isPlayer 
-                        ? 'bg-white text-black border-2 border-black mr-2' 
+                    className={`relative max-w-[80%] p-4 ${
+                      msg.isPlayer
+                        ? 'bg-white text-black border-2 border-black mr-2'
                         : 'bg-black text-white border-2 border-white ml-2'
-                      }
-                    `}
-                    style={{ 
-                      clipPath: msg.isPlayer 
-                        ? 'polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%)' 
-                        : 'polygon(0 0, 100% 0, 100% 100%, 15px 100%, 0 calc(100% - 15px))'
+                    }`}
+                    style={{
+                      clipPath: msg.isPlayer
+                        ? 'polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%)'
+                        : 'polygon(0 0, 100% 0, 100% 100%, 15px 100%, 0 calc(100% - 15px))',
                     }}
                   >
                     <p className="font-mono text-sm leading-relaxed">{msg.text}</p>
-                    <div className={`
-                      absolute bottom-0 ${msg.isPlayer ? 'right-0' : 'left-0'} 
-                      text-[10px] font-mono opacity-50 p-1
-                    `}>
+                    <div
+                      className={`absolute bottom-0 ${
+                        msg.isPlayer ? 'right-0' : 'left-0'
+                      } text-[10px] font-mono opacity-50 p-1`}
+                    >
                       {msg.timestamp.toLocaleTimeString()}
                     </div>
                   </div>
@@ -186,9 +190,9 @@ export function GameChat({ isOpen, onClose, characterName }: GameChatProps) {
                     rows={1}
                     style={{ clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%)' }}
                   />
-                  <Terminal 
-                    size={16} 
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white opacity-50" 
+                  <Terminal
+                    size={16}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white opacity-50"
                   />
                 </div>
                 <button
@@ -204,19 +208,6 @@ export function GameChat({ isOpen, onClose, characterName }: GameChatProps) {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Toggle Button */}
-      <motion.button
-        className="relative group"
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-      >
-        <div className="absolute inset-0 bg-white translate-x-2 translate-y-2 transition-transform group-hover:translate-x-1 group-hover:translate-y-1" />
-        <div className="relative bg-black text-white border-2 border-white px-6 py-3 flex items-center gap-2 font-mono font-bold">
-          <MessageSquare className="animate-pulse" />
-          INVESTIGATE
-        </div>
-      </motion.button>
     </div>
   );
 }

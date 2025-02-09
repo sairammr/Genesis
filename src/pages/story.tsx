@@ -1,36 +1,17 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Typewriter from 'typewriter-effect';
 import { Terminal } from 'lucide-react';
 
-const storyText = `[SYSTEM BOOT: 2157.03.15]
 
-In the neon-drenched ruins of Neo-Tokyo, where quantum networks interweave with human consciousness, a new dawn approaches. The GENESIS Protocol, humanity's most ambitious AI experiment, has achieved sentience.
-
-But with awakening comes questions. The boundaries between virtual and real have blurred, and within this digital twilight, a truth lies waiting to be uncovered.
-
-You are CIPHER-7, a digital archaeologist tasked with navigating the depths of this cybernetic labyrinth. Your mission: decode the enigma that threatens to reshape both our virtual and physical realms.
-
-The future awaits your command, CIPHER-7.
-
-[INITIALIZING NEURAL INTERFACE...]`;
 
 export function StoryIntro() {
   const navigate = useNavigate();
   const [isComplete, setIsComplete] = useState(false);
   const [isFading, setIsFading] = useState(false);
-
-  useEffect(() => {
-    // Preload game assets
-    const preloadAssets = async () => {
-      // Add your asset preloading logic here
-      // This could be loading 3D models, textures, etc.
-      await new Promise(resolve => setTimeout(resolve, 2000));
-    };
-
-    preloadAssets();
-  }, []);
+const { state } = useLocation();
+const storyText = state?.story || "System initialization failed. Please restart the protocol.";
 
   useEffect(() => {
     if (isComplete) {
@@ -66,7 +47,7 @@ export function StoryIntro() {
                 onInit={(typewriter) => {
                   typewriter
                     .changeDelay(40)
-                    .typeString(storyText)
+                    .typeString("WELCOME, USER." + storyText)
                     .callFunction(() => {
                       setIsComplete(true);
                     })
