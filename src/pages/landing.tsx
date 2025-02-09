@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Gamepad2, Sparkles, Brain, Wand2, Rocket, Globe2, Users, Star, ChevronRight, Zap } from 'lucide-react';
+import { Gamepad2, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePrivy } from "@privy-io/react-auth";
+ 
 
 function LandingPage() {
-  const { ready, authenticated, user, login, logout } = usePrivy();
+  const { ready, authenticated,  login, logout } = usePrivy();
 
     const navigate = useNavigate();
   return (
@@ -19,7 +19,7 @@ function LandingPage() {
                 <Gamepad2 className="h-8 w-8 text-white" />
                 <span className="text-2xl font-bold glitch">GENESIS</span>
               </div>
-              <div className="hidden md:flex items-center gap-8">
+              <div className=" md:flex items-center gap-8">
                 {['FEATURES', 'SHOWCASE', 'START'].map((item) => (
                   <a
                     key={item}
@@ -122,47 +122,6 @@ function LandingPage() {
               </div>
             </section>
 
-            {/* Showcase Section */}
-            <section id="showcase" className="py-20">
-              <div className="max-w-7xl mx-auto px-4">
-                <h2 className="text-6xl font-bold mb-16 glitch">WORLDS[]</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  {[...Array(6)].map((_, i) => (
-                    <motion.div
-                      key={i}
-                      className="brutalist-card aspect-square"
-                      initial={{ opacity: 0 }}
-                      whileInView={{ opacity: 1 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: i * 0.1 }}
-                    >
-                      <div className="h-full bg-white/5 backdrop-blur-sm p-4 flex items-center justify-center">
-                        <span className="text-2xl font-mono">WORLD_{i + 1}</span>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            </section>
-
-            {/* CTA Section */}
-            <section id="start" className="py-20 border-t-4 border-white">
-              <motion.div
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                className="max-w-4xl mx-auto text-center px-4"
-              >
-                <h2 className="text-6xl font-bold mb-8 glitch">START_GENESIS</h2>
-                <button
-                  className="brutalist-button text-2xl"
-                >
-                  EXECUTE
-                  <ChevronRight className="inline-block ml-2" />
-                </button>
-                
-              </motion.div>
-            </section>
           </main>
         </div>
      

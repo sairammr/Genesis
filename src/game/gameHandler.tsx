@@ -1,37 +1,46 @@
 import * as THREE from 'three';
 import { FirstPersonController } from './firstpersonview';
 import { processCubeMap } from '../utils/cubeMapGenerator';
-import { generateRoads } from './generateRoads';
-export const initializeScene = (container: HTMLElement, planeSize: number) => {
+export const initializeScene = (container: HTMLElement) => {
   const scene = new THREE.Scene();
    
   // Process and append cube map faces
   let textureImages: string[] = [];
-  processCubeMap('/sb4.jpg', {
-    interpolation: 'linear',
-    resolution: 1024
-  }).then(faces => {
-    textureImages = faces.map(face => {
-      // Convert canvas to data URL
-      return face.canvas.toDataURL('image/png');
+  fetch("https://cdn.jsdelivr.net/gh/sairammr/3d-models@main/skybox/sb4.jpg")
+    .then(response => response.blob())
+    .then(blob => {
+      const imageUrl = URL.createObjectURL(blob);
+      return processCubeMap(imageUrl, {
+        interpolation: 'linear',
+        resolution: 1024
+      });
+    })
+    .then(faces => {
+      textureImages = faces.map(face => {
+        return face.canvas.toDataURL('image/png');
+      });
+      
+      const loader = new THREE.CubeTextureLoader();
+      const texture = loader.load(textureImages);
+      scene.background = texture;
+      
+      texture.matrixAutoUpdate = false;
+      texture.matrix.identity()
+        .scale(0.95, 0.95 * 0.95)
+        .translate(0, 0.12);
+
+      // Clean up the object URL
+      
+
+    })
+    .catch(error => {
+      console.error('Error loading skybox:', error);
     });
-    
-    // Update the texture with processed faces
-    const loader = new THREE.CubeTextureLoader();
-    const texture = loader.load(textureImages);
-    scene.background = texture;
-    
-    // Apply the same transformations
-    texture.matrixAutoUpdate = false;
-    texture.matrix.identity()
-      .scale(0.95, 0.95 * 0.95)
-      .translate(0, 0.12);
-  });
   
 
   // Camera setup
   const camera = new THREE.PerspectiveCamera(
-    75,
+    50,
     container.clientWidth / container.clientHeight,
     0.1,
     1000
@@ -77,7 +86,6 @@ directionalLight.position.set(50, 100, 50);
  // Reduced from 2048
 
 // Tighten shadow camera frustum to cover only necessary areas
-generateRoads(scene, planeSize);
 scene.add(directionalLight);
 // Optional: Add a point light for additional brightness
 

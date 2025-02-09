@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, Send, X, Terminal, Cpu, Boxes } from 'lucide-react';
+import { MessageSquare, Send, X, Terminal, Cpu, Boxes, Users } from 'lucide-react';
 
 interface Message {
   text: string;
@@ -9,16 +9,20 @@ interface Message {
   id: string;
 }
 
-interface GameChatProps {
-  isOpen: boolean;
-  onClose: () => void;
-  characterName: string;
-}
+const CHARACTERS = [
+  { id: 'Michel', name: 'Michel', description: 'Suspect-1' },
+  { id: 'Jenna', name: 'Jenna', description: 'Suspect-2' },
+  {   id:'nexus', name: 'nexus' , description: 'Suspect-3' },
+ 
+]
 
-export function GameChat({ isOpen, onClose, characterName }: GameChatProps) {
+export function GameChat() {
+  const [selectedCharacter, setSelectedCharacter] = useState(CHARACTERS[0]);
+  const [showCharacterSelect, setShowCharacterSelect] = useState(false);
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [isOpenState, setIsOpenState] = useState(false);
   const [ws, setWs] = useState<WebSocket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -29,7 +33,7 @@ export function GameChat({ isOpen, onClose, characterName }: GameChatProps) {
 
   // Initialize WebSocket connection
   useEffect(() => {
-    const websocket = new WebSocket('ws://localhost:5000');
+    const websocket = new WebSocket('ws://localhost:5000/chat');
 
     websocket.onopen = () => {
       console.log('Connected to WebSocket');
@@ -53,7 +57,9 @@ export function GameChat({ isOpen, onClose, characterName }: GameChatProps) {
       }
     };
 
-   
+    return () => {
+      websocket.close();
+    };
   }, []);
 
   const addAIMessage = (text: string) => {
@@ -71,8 +77,8 @@ export function GameChat({ isOpen, onClose, characterName }: GameChatProps) {
 
   const handleSend = () => {
     if (message.trim() && ws) {
-      // Format message for WebSocket
-      const formattedMessage = `chat to ${characterName} ${message}`;
+      // Format message for WebSocket with selected character
+      const formattedMessage = `chat to ${selectedCharacter.id} ${message}`;
       ws.send(formattedMessage);
 
       // Add user message to local state
@@ -97,10 +103,17 @@ export function GameChat({ isOpen, onClose, characterName }: GameChatProps) {
     }
   };
 
+  const handleCharacterSelect = (character: typeof CHARACTERS[0]) => {
+    setSelectedCharacter(character);
+    setShowCharacterSelect(false);
+    // Clear messages when changing character
+    setMessages([]);
+  };
+
   return (
     <div className="fixed bottom-8 right-8 z-50">
       <AnimatePresence>
-        {isOpen && (
+        {isOpenState && (
           <motion.div
             initial={{ x: '100%', opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
@@ -114,17 +127,70 @@ export function GameChat({ isOpen, onClose, characterName }: GameChatProps) {
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
                   <Cpu className="animate-pulse" />
-                  <h3 className="font-mono font-bold tracking-tight">{characterName}</h3>
+                  <h3 className="font-mono font-bold tracking-tight">{selectedCharacter.name}</h3>
                 </div>
-                <button onClick={onClose} className="hover:text-red-500 transition-colors">
-                  <X size={20} />
-                </button>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => setShowCharacterSelect(true)} 
+                    className="hover:text-blue-500 transition-colors"
+                  >
+                    <Users size={20} />
+                  </button>
+                  <button 
+                    onClick={() => setIsOpenState(false)} 
+                    className="hover:text-red-500 transition-colors"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
               </div>
               <div className="flex gap-2 mt-2 text-xs font-mono">
                 <span className="bg-green-500 px-2 py-1">ONLINE</span>
                 <span className="bg-black text-white px-2 py-1">VER 2.5.0</span>
               </div>
             </div>
+
+            {/* Character Selection Modal */}
+            <AnimatePresence>
+              {showCharacterSelect && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="absolute inset-0 bg-black/95 z-50 p-6"
+                >
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-white font-mono font-bold">SELECT CHARACTER</h3>
+                    <button
+                      onClick={() => setShowCharacterSelect(false)}
+                      className="text-white hover:text-red-500 transition-colors"
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
+                  <div className="space-y-4">
+                    {CHARACTERS.map((character) => (
+                      <motion.button
+                        key={character.id}
+                        onClick={() => handleCharacterSelect(character)}
+                        className={`w-full p-4 border-2 ${
+                          selectedCharacter.id === character.id
+                            ? 'border-white bg-white text-black'
+                            : 'border-white/50 text-white hover:border-white'
+                        } transition-colors`}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <div className="text-left font-mono">
+                          <div className="font-bold">{character.name}</div>
+                          <div className="text-sm opacity-70">{character.description}</div>
+                        </div>
+                      </motion.button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Messages */}
             <div
@@ -208,6 +274,20 @@ export function GameChat({ isOpen, onClose, characterName }: GameChatProps) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Toggle Button */}
+      <motion.button
+        onClick={() => setIsOpenState(!isOpenState)}
+        className="relative group"
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        <div className="absolute inset-0 bg-white translate-x-2 translate-y-2 transition-transform group-hover:translate-x-1 group-hover:translate-y-1" />
+        <div className="relative bg-black text-white border-2 border-white px-6 py-3 flex items-center gap-2 font-mono font-bold">
+          <MessageSquare className="animate-pulse" />
+          {isOpenState ? 'CLOSE' : 'INVESTIGATE'}
+        </div>
+      </motion.button>
     </div>
   );
 }

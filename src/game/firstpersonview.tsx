@@ -1,8 +1,6 @@
-// FirstPersonController.ts
 import * as THREE from 'three';
 
 export class FirstPersonController {
-  private camera: THREE.Camera;
   private domElement: HTMLElement;
   private moveForward: boolean = false;
   private moveBackward: boolean = false;
@@ -13,26 +11,23 @@ export class FirstPersonController {
 
   private velocity: THREE.Vector3;
   private direction: THREE.Vector3;
-  private euler: THREE.Euler;
   private pitchObject: THREE.Object3D;
   private yawObject: THREE.Object3D;
 
   // Constants
   private readonly SPEED: number = 5.0;
-  private readonly JUMP_HEIGHT: number = 12;
-  private readonly GRAVITY: number = 40;
+  private readonly JUMP_HEIGHT: number = 8;
+  private readonly GRAVITY: number = 30;
 
   constructor(camera: THREE.Camera, domElement: HTMLElement) {
-    this.camera = camera;
     this.domElement = domElement;
     this.velocity = new THREE.Vector3();
     this.direction = new THREE.Vector3();
-    this.euler = new THREE.Euler(0, 0, 0, 'YXZ');
     
     // Create objects for handling rotations
     this.pitchObject = new THREE.Object3D();
     this.yawObject = new THREE.Object3D();
-    this.yawObject.position.y = 3; // Player height
+    this.yawObject.position.y = 30;
     this.yawObject.add(this.pitchObject);
     this.pitchObject.add(camera);
     
@@ -101,11 +96,9 @@ export class FirstPersonController {
   private onMouseMove(event: MouseEvent): void {
     if (document.pointerLockElement === this.domElement) {
       // Rotate yaw (left/right)
-      this.yawObject.rotation.y -= event.movementX * 0.002;
-      
+      this.yawObject.rotation.y -= event.movementX * 0.0006;
+
       // Rotate pitch (up/down) with limits
-      this.pitchObject.rotation.x -= event.movementY * 0.002;
-      this.pitchObject.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.pitchObject.rotation.x));
     }
   }
 
@@ -167,7 +160,7 @@ export class FirstPersonController {
 
     // Ground collision
     if (this.yawObject.position.y <= 1) {
-      this.yawObject.position.y = 1 ;
+      this.yawObject.position.y = 1;
       this.velocity.y = 0;
       this.isJumping = false;
       this.canJump = true;

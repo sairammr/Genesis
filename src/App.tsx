@@ -1,14 +1,18 @@
-import {  BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import {  BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import './App.css'
 import LandingPage from "./pages/landing";
 import { PromptInput } from "./pages/promptInput";
 import { LoadingScreen } from "./pages/loading";
 import SceneViewer from "./game/gameinit";
 import {StoryIntro} from "./pages/story";
+import '@coinbase/onchainkit/styles.css'; 
+
+
 function App() {
   
 
   return (
+   
    <Router>
     <Routes>
       <Route path="/" element={<LandingPage />} />

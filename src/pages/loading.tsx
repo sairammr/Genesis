@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { useEffect, useState, useRef } from 'react';
 import { Terminal } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
-
+import { preloadModels } from '../game/preModalLoader';
 const steps = [
   "ANALYZING_PROMPT.exe",
   "INITIALIZING_ENVIRONMENT.exe",
@@ -17,6 +17,7 @@ export function LoadingScreen() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [isConnecting, setIsConnecting] = useState(true);
+  const [modelsLoaded, setModelsLoaded] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
   const [results, setResults] = useState({
     story: null,
@@ -29,7 +30,7 @@ export function LoadingScreen() {
       return; // Already connected
     }
 
-    const ws = new WebSocket('ws://localhost:5000');
+    const ws = new WebSocket('ws://localhost:5000/world-creation');
     wsRef.current = ws;
 
     ws.onopen = () => {
@@ -52,9 +53,15 @@ export function LoadingScreen() {
             break;
           case 'image':
             setResults(prev => ({ ...prev, image: message.data }));
+            
+            
             break;
           case 'position':
             setResults(prev => ({ ...prev, position: message.data }));
+            const modelConfigs = message.data;
+             preloadModels(modelConfigs)
+            .then(() => setModelsLoaded(true))
+             .catch(console.error);
             break;
           case 'error':
             console.error('Server error:', message.data);
@@ -96,8 +103,12 @@ export function LoadingScreen() {
   useEffect(() => {
     if (results.image && results.position && results.story) {
       setTimeout(() => {
-        navigate('/story', { state: results });
-      }, 2000);
+        navigate('/story', { 
+          state: { 
+            ...results, 
+            modelConfigs: results.position // Pass model configs to the next scene
+          } 
+      }), 2000});
     }
   }, [results, navigate]);
 
@@ -127,7 +138,7 @@ export function LoadingScreen() {
               <div className="flex-1 border-b border-dashed border-white/30" />
               <span className={currentStep >= index ? 'text-white' : 'text-white/30'}>
                 {step}
-                {isConnecting && index === currentStep && '...reconnecting'}
+                {isConnecting && index === currentStep && ''}
               </span>
             </motion.div>
           ))}

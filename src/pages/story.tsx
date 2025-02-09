@@ -10,19 +10,28 @@ export function StoryIntro() {
   const navigate = useNavigate();
   const [isComplete, setIsComplete] = useState(false);
   const [isFading, setIsFading] = useState(false);
+  
+
 const { state } = useLocation();
 const storyText = state?.story || "System initialization failed. Please restart the protocol.";
-
-  useEffect(() => {
-    if (isComplete) {
+useEffect(() => {
+  if (isComplete) {
+    setTimeout(() => {
+      setIsFading(true);
       setTimeout(() => {
-        setIsFading(true);
-        setTimeout(() => {
-          navigate('/game');
-        }, 1000);
-      }, 2000);
-    }
-  }, [isComplete, navigate]);
+        // Navigate to /game with the position data
+        navigate('/game', {
+          state: {
+            position: state?.position, // Pass the position data
+            story: state?.story, // Optionally pass the story text
+            image: state?.image, // Optionally pass the image
+          },
+        });
+      }, 1000);
+    }, 2000);
+  }
+}, [isComplete, navigate, state?.position, state?.story, state?.image]);
+
 
   return (
     <AnimatePresence>
