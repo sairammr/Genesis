@@ -6,8 +6,6 @@
 
 - **GaiaNet**: AI model execution for world generation
 - **Privy**: Web3 authentication for secure player login
-- **Phaser**: Game engine for 2D game mechanics
-- **Blockchain**: NFT rewards and trading
 - **Three.js**: 3D rendering for dynamic skyboxes
 
 ## Setup Guide
@@ -78,26 +76,3 @@ const texture = loader.load([
 scene.background = texture;
 ```
 
-### AI Chatting Feature
-AI NPCs generate dynamic conversations based on player inputs. NPC behavior adjusts depending on player interactions.
-
-```javascript
-const npc = new NPCCharacter();
-
-npc.onChatInput = (input) => {
-  const response = aiModel.generateResponse(input);
-  npc.speak(response);
-};
-
-npc.chat();
-```
-
-### NFT Creation
-As players build their worlds, they earn NFTs representing their creations. NFTs are minted via smart contracts and are stored on the blockchain.
-
-```javascript
-const nft = createNFT(player.worldData);
-mintNFT(player.wallet, nft);
-```
-
-Players can trade NFTs on external marketplaces or in-game.
